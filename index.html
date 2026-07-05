@@ -2,25 +2,81 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0f1a">
+<meta name="screen-orientation" content="landscape">
+<meta name="x5-orientation" content="landscape">
 <title>星尘大冒险</title>
 <style>
-  html,body{margin:0;padding:0;background:#0d0f1a;height:100%;overflow:hidden;
+  html,body{margin:0;padding:0;background:#0d0f1a;height:100%;overflow:hidden;}
+  body{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    touch-action:none;-webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+  canvas{background:#000;box-shadow:0 0 60px rgba(80,120,255,.25);display:block;touch-action:none;}
+  /* ---------- 触屏虚拟按键（仅触屏设备显示） ---------- */
+  #touchUI{position:fixed;inset:0;display:none;pointer-events:none;z-index:10;}
+  body.touch #touchUI{display:block;}
+  .tbtn{position:fixed;display:flex;align-items:center;justify-content:center;border-radius:50%;
+    background:rgba(255,255,255,.09);border:2px solid rgba(255,255,255,.28);
+    color:rgba(255,255,255,.9);font:bold 26px/1 "Segoe UI",sans-serif;box-sizing:border-box;}
+  .tbtn.on{background:rgba(255,255,255,.3);border-color:rgba(255,255,255,.65);}
+  #btnL{left:calc(16px + env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));width:74px;height:74px;}
+  #btnR{left:calc(106px + env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));width:74px;height:74px;}
+  #btnJ{right:calc(20px + env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));width:92px;height:92px;font-size:32px;}
+  /* ---------- 舞台：竖屏时整体旋转 90°，游戏始终横屏呈现 ---------- */
+  #stage{position:fixed;left:0;top:0;transform-origin:0 0;
     display:flex;align-items:center;justify-content:center;}
-  canvas{background:#000;box-shadow:0 0 60px rgba(80,120,255,.25);
-    max-width:100vw;max-height:100vh;aspect-ratio:16/9;}
 </style>
 </head>
 <body>
+<div id="stage">
 <canvas id="game" width="960" height="540"></canvas>
+<div id="touchUI">
+  <div class="tbtn" id="btnL">◀</div>
+  <div class="tbtn" id="btnR">▶</div>
+  <div class="tbtn" id="btnJ">跳</div>
+</div>
+</div>
 <script>
 "use strict";
 // =====================================================================
-//  星尘大冒险 —— 单文件横版平台闯关
-//  操作：←→/AD 移动，空格/↑/W 跳（长按跳更高），Esc/P 暂停，M 静音，R 重开本关
+//  星尘大冒险 —— 单文件横版平台闯关（电脑 + 手机触屏）
+//  键盘：←→/AD 移动，空格/↑/W 跳（长按跳更高），Esc/P 暂停，M 静音，R 重开本关
+//  触屏：左下 ◀▶ 移动，右下「跳」跳跃；点按屏幕 开始/继续/复活；右上角 全屏/声音/暂停
 // =====================================================================
 const cvs = document.getElementById('game');
 const ctx = cvs.getContext('2d');
 const W = 960, H = 540, TILE = 32;
+
+// ---------- 自适应画布（电脑 + 手机，按 DPR 高清渲染） ----------
+// 手机竖屏（系统锁定旋转 / 微信等内置浏览器不跟随横屏）时，
+// 把整个舞台旋转 90°，保证游戏永远以横屏呈现。
+const stage = document.getElementById('stage');
+const coarseMQ = matchMedia('(pointer: coarse)');
+let rotated = false;
+function fitCanvas() {
+  const vw = innerWidth, vh = innerHeight;
+  rotated = coarseMQ.matches && vh > vw;
+  const sw = rotated ? vh : vw, sh = rotated ? vw : vh;   // 舞台尺寸（游戏坐标系）
+  stage.style.width = sw + 'px';
+  stage.style.height = sh + 'px';
+  stage.style.transform = rotated ? 'rotate(90deg) translateY(-100%)' : 'none';
+  let cw = sw, ch = sw * H / W;
+  if (ch > sh) { ch = sh; cw = sh * W / H; }
+  cvs.style.width = Math.floor(cw) + 'px';
+  cvs.style.height = Math.floor(ch) + 'px';
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  cvs.width = Math.max(1, Math.round(cw * dpr));
+  cvs.height = Math.max(1, Math.round(ch * dpr));
+}
+function onResize() { fitCanvas(); }
+addEventListener('resize', onResize);
+addEventListener('orientationchange', onResize);
+if (window.visualViewport) visualViewport.addEventListener('resize', onResize);
+fitCanvas();
 
 // ---------- 物理参数（改这里调手感） ----------
 const GRAV = 1500;
@@ -304,9 +360,111 @@ addEventListener('keydown', e => {
   sfx.resume();
 });
 addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-const left  = () => keys['a'] || keys['arrowleft'];
-const right = () => keys['d'] || keys['arrowright'];
-const jumpHeld = () => keys['w'] || keys['arrowup'] || keys[' '];
+
+// =====================================================================
+//  触屏支持：虚拟按键（多点触控 + 滑动切换）、点按屏幕、HUD 按钮
+// =====================================================================
+const touchState = { left:false, right:false, jump:false };
+let isTouch = false, anyTapped = false;
+function enableTouchUI() {
+  if (isTouch) return;
+  isTouch = true;
+  document.body.classList.add('touch');
+}
+if (matchMedia('(pointer: coarse)').matches) enableTouchUI();
+
+const btnEls = {
+  left:  document.getElementById('btnL'),
+  right: document.getElementById('btnR'),
+  jump:  document.getElementById('btnJ'),
+};
+const ptrMap = new Map();   // pointerId -> 按键名 / null
+function btnHit(x, y) {
+  for (const name in btnEls) {
+    const r = btnEls[name].getBoundingClientRect();
+    if (x >= r.left - 14 && x <= r.right + 14 && y >= r.top - 14 && y <= r.bottom + 14) return name;
+  }
+  return null;
+}
+function refreshTouch() {
+  const prevJump = touchState.jump;
+  touchState.left = touchState.right = touchState.jump = false;
+  for (const b of ptrMap.values()) if (b) touchState[b] = true;
+  if (touchState.jump && !prevJump) jumpBufT = JUMP_BUF;   // 与键盘一致的跳跃缓冲
+  for (const name in btnEls) btnEls[name].classList.toggle('on', touchState[name]);
+}
+function clearInputs() {
+  for (const k in keys) keys[k] = false;
+  ptrMap.clear();
+  refreshTouch();
+}
+addEventListener('pointerdown', e => {
+  sfx.resume();
+  if (e.pointerType !== 'mouse') enableTouchUI();
+  if (isTouch) {
+    const b = btnHit(e.clientX, e.clientY);
+    if (b) { ptrMap.set(e.pointerId, b); refreshTouch(); return; }
+    if (hudBtnTap(e.clientX, e.clientY)) return;
+    ptrMap.set(e.pointerId, null);             // 记录后允许滑动到按键上
+  }
+  if (state !== 'play') anyTapped = true;      // 点按屏幕 = 开始 / 继续 / 复活
+});
+addEventListener('pointermove', e => {
+  if (!ptrMap.has(e.pointerId)) return;
+  const b = btnHit(e.clientX, e.clientY);
+  if (b !== ptrMap.get(e.pointerId)) { ptrMap.set(e.pointerId, b); refreshTouch(); }
+});
+const endPtr = e => { if (ptrMap.delete(e.pointerId)) refreshTouch(); };
+addEventListener('pointerup', endPtr);
+addEventListener('pointercancel', endPtr);
+addEventListener('blur', clearInputs);
+addEventListener('contextmenu', e => { if (isTouch) e.preventDefault(); });
+addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { clearInputs(); if (state === 'play') state = 'pause'; }   // 切后台自动暂停
+});
+
+// ---------- 画布内 HUD 按钮（触屏：全屏 / 声音 / 暂停） ----------
+const hudBtns = [
+  { id:'full',  x: W - 166, y: 12, w: 44, h: 40 },
+  { id:'mute',  x: W - 114, y: 12, w: 44, h: 40 },
+  { id:'pause', x: W - 62,  y: 12, w: 44, h: 40 },
+];
+function hudBtnTap(cx, cy) {
+  const r = cvs.getBoundingClientRect();
+  // 旋转模式下屏幕坐标 → 游戏坐标需换轴
+  const x = rotated ? (cy - r.top) * W / r.height : (cx - r.left) * W / r.width;
+  const y = rotated ? (r.right - cx) * H / r.width : (cy - r.top) * H / r.height;
+  for (const b of hudBtns) {
+    if (x >= b.x - 6 && x <= b.x + b.w + 6 && y >= b.y - 6 && y <= b.y + b.h + 6) {
+      if (b.id === 'pause') { if (state === 'play') state = 'pause'; else if (state === 'pause') state = 'play'; }
+      else if (b.id === 'mute') sfx.muted = !sfx.muted;
+      else if (b.id === 'full') toggleFullscreen();
+      return true;
+    }
+  }
+  return false;
+}
+function toggleFullscreen() {
+  try {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const el = document.documentElement;
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      const p = req && req.call(el);
+      if (p && p.then) p.then(() => {
+        if (screen.orientation && screen.orientation.lock)
+          screen.orientation.lock('landscape').catch(() => {});
+      }).catch(() => {});
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) exit.call(document);
+    }
+  } catch (err) {}
+}
+
+const left  = () => keys['a'] || keys['arrowleft'] || touchState.left;
+const right = () => keys['d'] || keys['arrowright'] || touchState.right;
+const jumpHeld = () => keys['w'] || keys['arrowup'] || keys[' '] || touchState.jump;
 
 // =====================================================================
 //  音效 + 背景音乐（WebAudio 合成，无外部文件）
@@ -1000,6 +1158,7 @@ function update(dt) {
 // =====================================================================
 function draw(time) {
   const L = LEVELS[level];
+  ctx.setTransform(cvs.width / W, 0, 0, cvs.height / H, 0, 0);   // 逻辑坐标 960×540 → 实际像素
 
   // 天空
   const sky = ctx.createLinearGradient(0, 0, 0, H);
@@ -1055,6 +1214,7 @@ function draw(time) {
   if (state === 'clear') drawClear();
   if (state === 'over')  drawOver();
   if (state === 'win')   drawWin();
+  if (isTouch) drawHudBtns();
 }
 
 function drawParallax(L, time) {
@@ -1446,6 +1606,46 @@ function drawMover(m, L) {
 }
 
 // ---------- HUD 与界面 ----------
+function drawHudBtns() {
+  ctx.save();
+  for (const b of hudBtns) {
+    ctx.fillStyle = 'rgba(10,12,26,0.5)';
+    roundRect(b.x, b.y, b.w, b.h, 10);
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2; ctx.stroke();
+    const cx = b.x + b.w/2, cy = b.y + b.h/2;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+    if (b.id === 'pause') {
+      if (state === 'pause') {   // 播放三角
+        ctx.beginPath(); ctx.moveTo(cx - 5, cy - 8); ctx.lineTo(cx + 8, cy); ctx.lineTo(cx - 5, cy + 8); ctx.fill();
+      } else {                   // 暂停双竖条
+        ctx.fillRect(cx - 7, cy - 8, 5, 16); ctx.fillRect(cx + 2, cy - 8, 5, 16);
+      }
+    } else if (b.id === 'mute') {
+      ctx.beginPath();           // 喇叭
+      ctx.moveTo(cx - 11, cy - 4); ctx.lineTo(cx - 5, cy - 4); ctx.lineTo(cx + 1, cy - 10);
+      ctx.lineTo(cx + 1, cy + 10); ctx.lineTo(cx - 5, cy + 4); ctx.lineTo(cx - 11, cy + 4);
+      ctx.fill();
+      if (sfx.muted) {           // 静音打叉
+        ctx.beginPath();
+        ctx.moveTo(cx + 5, cy - 5); ctx.lineTo(cx + 12, cy + 5);
+        ctx.moveTo(cx + 12, cy - 5); ctx.lineTo(cx + 5, cy + 5);
+        ctx.stroke();
+      } else {                   // 声波
+        ctx.beginPath(); ctx.arc(cx + 1, cy, 7, -0.9, 0.9); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx + 1, cy, 11, -0.75, 0.75); ctx.stroke();
+      }
+    } else {                     // 全屏：四角括号
+      const o = 8, s = 6;
+      ctx.beginPath();
+      ctx.moveTo(cx - o, cy - o + s); ctx.lineTo(cx - o, cy - o); ctx.lineTo(cx - o + s, cy - o);
+      ctx.moveTo(cx + o - s, cy - o); ctx.lineTo(cx + o, cy - o); ctx.lineTo(cx + o, cy - o + s);
+      ctx.moveTo(cx + o, cy + o - s); ctx.lineTo(cx + o, cy + o); ctx.lineTo(cx + o - s, cy + o);
+      ctx.moveTo(cx - o + s, cy + o); ctx.lineTo(cx - o, cy + o); ctx.lineTo(cx - o, cy + o - s);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
 function drawHUD(L) {
   if (state === 'title') return;
   ctx.save();
@@ -1511,16 +1711,20 @@ function drawHUD(L) {
   ctx.textAlign = 'center';
   ctx.strokeText(L.name, W/2, 34); ctx.fillText(L.name, W/2, 34);
   ctx.textAlign = 'right';
-  ctx.strokeText(levelTime.toFixed(1) + 's', W - 26, 34);
-  ctx.fillText(levelTime.toFixed(1) + 's', W - 26, 34);
-  if (sfx.muted) { ctx.strokeText('🔇', W - 26, 64); ctx.fillText('🔇', W - 26, 64); }
+  const tY = isTouch ? 80 : 34;   // 触屏时给右上角按钮让位
+  ctx.strokeText(levelTime.toFixed(1) + 's', W - 26, tY);
+  ctx.fillText(levelTime.toFixed(1) + 's', W - 26, tY);
+  if (sfx.muted && !isTouch) { ctx.strokeText('🔇', W - 26, 64); ctx.fillText('🔇', W - 26, 64); }
   // 第一关操作提示
   if (level === 0 && hintT > 0 && state === 'play') {
     ctx.globalAlpha = Math.min(1, hintT);
     ctx.textAlign = 'center';
     ctx.font = '16px "Segoe UI", sans-serif';
-    ctx.strokeText('←→/AD 移动 · 空格 跳跃(长按跳更高) · 踩敌人头消灭它 · 红色尖刺怪不能踩！', W/2, H - 28);
-    ctx.fillText('←→/AD 移动 · 空格 跳跃(长按跳更高) · 踩敌人头消灭它 · 红色尖刺怪不能踩！', W/2, H - 28);
+    const hint = isTouch
+      ? '◀ ▶ 移动 · 「跳」键跳跃(长按跳更高) · 踩敌人头消灭它 · 红色尖刺怪不能踩！'
+      : '←→/AD 移动 · 空格 跳跃(长按跳更高) · 踩敌人头消灭它 · 红色尖刺怪不能踩！';
+    ctx.strokeText(hint, W/2, H - 28);
+    ctx.fillText(hint, W/2, H - 28);
     ctx.globalAlpha = 1;
   }
   ctx.restore();
@@ -1544,13 +1748,15 @@ function drawTitle(time) {
   const bob = Math.sin(time * 0.002) * 8;
   bigText('星 尘 大 冒 险', H * 0.3 + bob, 58, '#ffd166');
   bigText('Stardust Adventure', H * 0.3 + 40 + bob, 20, '#9fb8ff');
-  bigText('按 空格 / 任意键 开始', H * 0.58 + Math.sin(time * 0.005) * 3, 26);
+  bigText(isTouch ? '点击屏幕开始' : '按 空格 / 任意键 开始', H * 0.58 + Math.sin(time * 0.005) * 3, 26);
   const best = getBest();
   if (best > 0) bigText('最高纪录 ' + best, H * 0.58 + 40, 18, '#ffd166');
   ctx.font = '17px "Segoe UI", sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.85)';
   ctx.textAlign = 'center';
-  ctx.fillText('←→/AD 移动  ·  空格/W/↑ 跳跃  ·  Esc 暂停  ·  M 静音  ·  R 重开本关', W/2, H * 0.72);
+  ctx.fillText(isTouch
+    ? '左下 ◀ ▶ 移动  ·  右下「跳」键跳跃（长按跳更高）  ·  右上角 全屏 / 声音 / 暂停'
+    : '←→/AD 移动  ·  空格/W/↑ 跳跃  ·  Esc 暂停  ·  M 静音  ·  R 重开本关', W/2, H * 0.72);
   ctx.fillText('10 个关卡 · 隐藏宝石 · 限时二段跳 · 无敌星 · 两场 Boss 战！', W/2, H * 0.72 + 30);
 }
 function drawPause() {
@@ -1558,7 +1764,7 @@ function drawPause() {
   panel(420, 190);
   bigText('已暂停', H/2 - 28, 40);
   ctx.font = '18px "Segoe UI", sans-serif'; ctx.fillStyle = '#dde3f0'; ctx.textAlign = 'center';
-  ctx.fillText('Esc/P 继续 · R 从检查点重来 · M 静音', W/2, H/2 + 30);
+  ctx.fillText(isTouch ? '点击屏幕继续游戏' : 'Esc/P 继续 · R 从检查点重来 · M 静音', W/2, H/2 + 30);
 }
 function drawClear() {
   ctx.fillStyle = 'rgba(8,10,24,0.6)'; ctx.fillRect(0, 0, W, H);
@@ -1571,14 +1777,16 @@ function drawClear() {
   ctx.fillText('用时 ' + s.time.toFixed(1) + 's · 时间奖励 +' + s.bonus, W/2, H/2 + 2);
   bigText('本关得分 ' + s.score, H/2 + 52, 30, '#ffd166');
   ctx.font = '18px "Segoe UI", sans-serif'; ctx.fillStyle = '#9fb8ff';
-  ctx.fillText(level < LEVELS.length - 1 ? '按 空格 进入下一关' : '按 空格 查看结算', W/2, H/2 + 108);
+  ctx.fillText(level < LEVELS.length - 1
+    ? (isTouch ? '点击屏幕进入下一关' : '按 空格 进入下一关')
+    : (isTouch ? '点击屏幕查看结算' : '按 空格 查看结算'), W/2, H/2 + 108);
 }
 function drawOver() {
   ctx.fillStyle = 'rgba(30,8,12,0.65)'; ctx.fillRect(0, 0, W, H);
   panel(460, 220);
   bigText('力竭倒下…', H/2 - 40, 44, '#ff6b81');
   ctx.font = '19px "Segoe UI", sans-serif'; ctx.fillStyle = '#dde3f0'; ctx.textAlign = 'center';
-  ctx.fillText('按 R 从检查点满血复活', W/2, H/2 + 28);
+  ctx.fillText(isTouch ? '点击屏幕从检查点满血复活' : '按 R 从检查点满血复活', W/2, H/2 + 28);
   ctx.fillText('当前总分 ' + totalScore, W/2, H/2 + 62);
 }
 function drawWin() {
@@ -1593,7 +1801,7 @@ function drawWin() {
   ctx.font = '17px "Segoe UI", sans-serif'; ctx.fillStyle = '#ffd166';
   ctx.fillText(totalScore >= best ? '🏆 新纪录！' : '最高纪录 ' + best, W/2, H/2 + 84);
   ctx.font = '18px "Segoe UI", sans-serif'; ctx.fillStyle = '#9fb8ff';
-  ctx.fillText('按 R 再来一局', W/2, H/2 + 120);
+  ctx.fillText(isTouch ? '点击屏幕再来一局' : '按 R 再来一局', W/2, H/2 + 120);
 }
 
 // =====================================================================
@@ -1604,13 +1812,16 @@ function frame(time) {
   const dt = Math.min(1/30, (time - lastT) / 1000 || 0);
   lastT = time;
 
-  if (state === 'title' && anyKeyPressed) { anyKeyPressed = false; state = 'play'; }
-  else if (state === 'clear' && keys[' ']) {
+  if (state === 'title' && (anyKeyPressed || anyTapped)) { state = 'play'; }
+  else if (state === 'clear' && (keys[' '] || anyTapped)) {
     keys[' '] = false;
     if (level < LEVELS.length - 1) { loadLevel(level + 1); state = 'play'; }
     else { state = 'win'; saveBest(totalScore); }
   }
-  anyKeyPressed = false;
+  else if (state === 'pause' && anyTapped) state = 'play';
+  else if (state === 'over' && anyTapped) retryLevel();
+  else if (state === 'win' && anyTapped) { totalScore = 0; bootsT = 0; gemsRun = 0; loadLevel(0); state = 'play'; }
+  anyKeyPressed = false; anyTapped = false;
 
   update(dt);
   draw(time);
