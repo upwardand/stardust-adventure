@@ -91,7 +91,7 @@ const JUMP_BUF = 0.13;         // 提前按跳的缓冲
 // =====================================================================
 //  关卡数据（ASCII 地图）
 //  # 实心砖  = 单向平台  ^ 尖刺  ~ 岩浆  C 崩塌砖  I 冰面  W 魔王城门
-//  o 金币  + 红心  $ 宝石  ! 无敌星  B 二段跳靴  S 弹簧  * 检查点  P 出生点  G 终点旗
+//  o 金币  + 红心  $ 宝石  ! 无敌星  B 二段跳靴  U 吸铁石  S 弹簧  * 检查点  P 出生点  G 终点旗
 //  E 行走怪  K 尖刺怪(不可踩)  F 飞行怪  T 炮台  J 跳跳怪  X 史莱姆王  M 横移平台  N 竖移平台
 // =====================================================================
 const LEVELS = [
@@ -114,7 +114,7 @@ map: [
 "                                                                                                                                    oooooo                           =====            M                                                                                                                                                       ######",
 "                                                           =======                          M                          =======         J               ooo                                                         ooo                         =======                         ooo                         oooooo                             ######",
 "    P                                       ####                                                                                ############                                                                                oooooooo     +                                                                                                    ######",
-"        ooooo E                             ####  ooo  E              S             K               *    ^^^  oooo E            ############     E          ooo   ##      T ooo *             S         K     ooo                       E            *ooo ^^      ^^ooo E              ooo   J    * S                 oooo E      ooooo   G   ######",
+"        ooooo E                             ####  ooo  E              S             K               *    ^^^  oooo E            ############     E          ooo   ##      T ooo *             S         K     ooo       U               E            *ooo ^^      ^^ooo E              ooo   J    * S                 oooo E      ooooo   G   ######",
 "##############################    ##########################     #########################     #########################     #########################    ##########################     #########################    ######CCCCCCCC############     #########################    ##########################    ####################################",
 "##############################    ##########################     #########################     #########################     #########################    ##########################     #########################    ######        ############ o$o #########################    ##########################    ####################################",
 "##############################    ##########################     #########################     #########################     #########################    ##########################     #########################    ######        ##########################################    ##########################    ####################################",
@@ -214,7 +214,7 @@ map: [
 "                #############################################                                                                                        =====         =====            ###################################################                         ooo                                                                            #####",
 "                          #           #           #                        ooo               M                                           +     ooo           ooo                         #          #          #                                           K    ###                M                               +                           #####",
 "    P                     #      ooo  #           #                                                                           =====           =====         =====                        #o         #          #o                       =====       ooo   ###   ###                                                                            #####",
-"       ooo    E       K       ^^            T  oo       *                 J   ^^    T                    oooooooo   *                 K                                     *   T            ^^  E   oo ^^  K                   *  J          E     ###   ###   ###      T               * J  ^^ ## T    K  ooo         oooo  E   ^^        G  #####",
+"       ooo    E       K       ^^            T  oo       *                 J   ^^    T                U   oooooooo   *                 K                                     *   T            ^^  E   oo ^^  K                   *  J          E     ###   ###   ###      T               * J  ^^ ## T    K  ooo         oooo  E   ^^        G  #####",
 "##############################################################     #######################        ######CCCC##CCCC############     ###########                           #############################################CCCCCC############     #################################          ############################################################",
 "############################################################## o$o #######################        ######    ##    ############     ###########                           #############################################      ############     #################################          ############################################################",
 "##########################################################################################        ######    ##    ############     ###########                           #############################################      ############     #################################          ############################################################",
@@ -238,7 +238,7 @@ map: [
 "                                                                                         ====   E   ooo  ^^                                                                                                                                                F                                                                    K   ^^  ooo                     ########",
 "                                         ooo                   M                             #################                     +                              N                                M                        ====                                               +       M                  ###               ####################                ########",
 "    P               =====               =====                                        ====    ################# =====                    =====                                                                                   ====                    ========                                     ###  ###               ####################                ########",
-"        ooo   E             K     S             E   ^^   T            *   J   ooo K          #################         *   T    J    S           E   ^^  K  oo            T    E    ^^    J oo            *   K     S   E              T   ^^   J  ooo            *   E    K                    ###  ###  ###               ####################     oo G       ########",
+"        ooo   E             K  U  S             E   ^^   T            *   J   ooo K          #################         *   T    J    S           E   ^^  K  oo            T    E    ^^    J oo            *   K     S   E              T   ^^   J  ooo            *   E    K                    ###  ###  ###               ####################     oo G       ########",
 "####################     ###############     ###############        #################        #################       ##################       ##################      ##########################        ####################        ####################        ####################        ######################          ####################    ####################",
 "####################     ###############     ###############        #################        #################       ##################       ##################      ##########################        ####################        ####################        ####################        ######################          ####################    ####################",
 "####################     ###############     ###############        #################        #################       ##################       ##################      ##########################        ####################        ####################        ####################        ######################          ####################    ####################",
@@ -310,7 +310,7 @@ map: [
 "                                                        #####################                                                                             ######                                                 F                                                #         #                              F                                                                      ##########",
 "                         M                      J   ### #####################              $                                         N                    ######                                           F           F                   M                      #         #                                                                                                     ##########",
 "    P                                          ###  ### #####################                                              o o o                                      +                                                                                                 !           $        +       ooo  ooo  ooo                                                                ##########",
-"       ooo    E  ^^                       ###  ###  ### #####################  *   oooooo            ## T    K  ^^   E                                     oooo   *         J   T   ^^  K   E    ooooo      o ^^  o ^^  o ^^    K  *               T  ^^       J     T    K    E  ^^      *                              K   T    J  ^^   E  ooo  E   ^^    K    ooo      G       ##########",
+"       ooo    E  ^^                       ###  ###  ### #####################  *   oooooo            ## T    K  ^^   E                                     oooo   *         J   T   ^^  K   E    ooooo      o ^^  o ^^  o ^^    K  *               T  ^^       J     T    K    E  ^^      *     U                        K   T    J  ^^   E  ooo  E   ^^    K    ooo      G       ##########",
 "######################        ####################################################CCCCCCCC####    ########################   #   #####  CCCCCCCCCCCCCCCC #######################################CCCCCCC#################################        ####################################################    ##   ##    #########################################################################",
 "######################        ####################################################        ####    ########################   #   #####                   #######################################       #################################        ####################################################    ##   ##    #########################################################################",
 "######################        ####################################################        ####    ########################   #   #####                   #######################################       #################################        ####################################################    ##   ##    #########################################################################",
@@ -360,7 +360,7 @@ addEventListener('keydown', e => {
   if (e.key.toLowerCase() === 'p' || e.key === 'Escape') if (state === 'play') state = 'pause'; else if (state === 'pause') state = 'play';
   if (e.key.toLowerCase() === 'r') { if (state === 'play' || state === 'pause' || state === 'over') retryLevel(); if (state === 'win') goSelect(); }
   if (e.key.toLowerCase() === 'l' && (state === 'pause' || state === 'clear' || state === 'over' || state === 'win')) goSelect();
-  if (/^[0-9]$/.test(e.key) && (state==='play'||state==='pause')) { const idx = e.key === '0' ? 9 : +e.key - 1; if (idx < LEVELS.length) { totalScore = 0; bootsT = 0; gemsRun = 0; loadLevel(idx); state = 'play'; } }
+  if (/^[0-9]$/.test(e.key) && (state==='play'||state==='pause')) { const idx = e.key === '0' ? 9 : +e.key - 1; if (idx < LEVELS.length) { totalScore = 0; bootsT = 0; magnetT = 0; gemsRun = 0; loadLevel(idx); state = 'play'; } }
   sfx.resume();
 });
 addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
@@ -516,6 +516,7 @@ const sfx = {
   gem()    { [784,1175,1568].forEach((f,i)=>this.beep(f,f,0.1,'sine',0.11,i*0.07)); },
   star()   { [523,659,784,1047,1319].forEach((f,i)=>this.beep(f,f,0.09,'square',0.1,i*0.07)); },
   boots()  { [392,523,659,784].forEach((f,i)=>this.beep(f,f,0.11,'triangle',0.12,i*0.08)); },
+  magnet() { [330,415,554,740].forEach((f,i)=>this.beep(f,f,0.1,'sine',0.13,i*0.06)); },
   bossHit(){ this.beep(220, 80, 0.25, 'sawtooth', 0.16); },
   bossDie(){ [392,330,262,196,262,392,523].forEach((f,i)=>this.beep(f,f,0.16,'square',0.12,i*0.12)); },
   uiMove() { this.beep(660, 660, 0.05, 'square', 0.06); },
@@ -549,12 +550,12 @@ let state = 'title';   // title | play | pause | clear | over | win
 let level = 0;
 let grid = [], gridW = 0, gridH = 0;
 let player, enemies, coins, hearts, springs, checkpoints, movers, crumbleState, goal;
-let bullets, gems, stars, bootsItems, gates, boss;
+let bullets, gems, stars, bootsItems, magnetItems, gates, boss;
 let particles = [], popups = [];
 let camX = 0, camY = 0;
 let respawn = { x: 0, y: 0 };
 let levelTime = 0, totalScore = 0, levelScore = 0, coinCount = 0, stompCount = 0;
-let bootsT = 0, gemsRun = 0;   // bootsT: 二段跳剩余秒数
+let bootsT = 0, magnetT = 0, gemsRun = 0;   // bootsT: 二段跳剩余秒数  magnetT: 吸铁石剩余秒数
 let hintT = 7;         // 第一关操作提示显示时长
 let shakeT = 0;
 let clearStats = null;
@@ -594,7 +595,7 @@ const GEM_TOTALS = LEVELS.map(L => L.map.join('').split('$').length - 1);
 
 function goSelect() { state = 'select'; selIdx = Math.min(save.unlocked, LEVELS.length - 1); selMsgT = 0; }
 function startLevel(i) {
-  totalScore = 0; gemsRun = 0; bootsT = 0;
+  totalScore = 0; gemsRun = 0; bootsT = 0; magnetT = 0;
   loadLevel(i); state = 'play'; sfx.uiGo();
 }
 function trySelect(i) {
@@ -624,7 +625,7 @@ function loadLevel(idx) {
   gridH = rows.length;
   grid = [];
   enemies = []; coins = []; hearts = []; springs = []; checkpoints = []; movers = [];
-  bullets = []; gems = []; stars = []; bootsItems = []; gates = []; boss = null;
+  bullets = []; gems = []; stars = []; bootsItems = []; magnetItems = []; gates = []; boss = null;
   crumbleState = new Map();
   goal = null;
   particles = []; popups = [];
@@ -648,6 +649,7 @@ function loadLevel(idx) {
         case '$': gems.push({x:px+16, y:py+16, taken:false, t:Math.random()*6}); break;
         case '!': stars.push({x:px+16, y:py+16, taken:false, t:Math.random()*6}); break;
         case 'B': bootsItems.push({x:px+16, y:py+16, taken:false, t:Math.random()*6}); break;
+        case 'U': magnetItems.push({x:px+16, y:py+16, taken:false, t:Math.random()*6}); break;
         case 'S': springs.push({x:px, y:py+16, w:TILE, h:16, anim:0}); break;
         case '*': checkpoints.push({x:px+16, y:py, active:false}); break;
         case 'P': spawn = {x:px+5, y:py}; break;
@@ -856,6 +858,13 @@ function update(dt) {
       sfx.beep(600, 220, 0.3, 'triangle', 0.09);
     }
   }
+  if (magnetT > 0) {
+    magnetT = Math.max(0, magnetT - dt);
+    if (magnetT === 0) {
+      popups.push({x:p.x + p.w/2, y:p.y - 12, txt:'吸铁石失效了', t:1.2});
+      sfx.beep(600, 220, 0.3, 'triangle', 0.09);
+    }
+  }
   p.squash = Math.max(0, p.squash - dt * 4);
   if (p.starT > 0 && Math.random() < 0.4)
     particles.push({x:p.x+Math.random()*p.w, y:p.y+Math.random()*p.h,
@@ -882,8 +891,8 @@ function update(dt) {
   if (jumpBufT > 0 && p.coyoteT > 0) {
     p.vy = -JUMP_V; p.coyoteT = 0; jumpBufT = 0;
     p.squash = 0.2; sfx.jump(); dust(p.x + p.w/2, p.y + p.h);
-  } else if (jumpBufT > 0 && bootsT > 0 && p.airJumps > 0 && p.coyoteT <= 0) {
-    // 二段跳：空中光环
+  } else if (jumpBufT > 0 && bootsT > 0 && p.airJumps > 0 && p.coyoteT <= 0 && p.vy > -JUMP_V * 0.55) {
+    // 二段跳：空中光环（上升太快时不触发也不消耗，缓冲会在减速后自动补发）
     p.vy = -JUMP_V * 0.92; p.airJumps--; jumpBufT = 0;
     sfx.jump();
     for (let i = 0; i < 10; i++) {
@@ -950,6 +959,7 @@ function update(dt) {
     s.anim = Math.max(0, s.anim - dt * 3);
     if (p.vy >= 0 && overlap({x:p.x,y:p.y,w:p.w,h:p.h}, s) && p.prevBottom <= s.y + 12) {
       p.vy = -SPRING_V; p.y = s.y - p.h;
+      p.coyoteT = 0;   // 防止土狼跳把弹簧速度覆盖成普通跳
       s.anim = 1; sfx.spring(); p.squash = 0.3;
       dust(s.x + s.w/2, s.y);
     }
@@ -959,9 +969,9 @@ function update(dt) {
   for (const c of coins) {
     if (c.taken) continue;
     c.t += dt;
-    // 磁吸：靠近后金币飞向玩家
+    // 磁吸（需吸铁石道具）：靠近后金币飞向玩家
     const dx = p.x + p.w/2 - c.x, dy = p.y + p.h/2 - c.y, d = Math.hypot(dx, dy);
-    if (d < 90 && d > 0.1) { const k = Math.min(1, dt * 9 * (1 - d / 90)); c.x += dx * k; c.y += dy * k; }
+    if (magnetT > 0 && d < 110 && d > 0.1) { const k = Math.min(1, dt * 9 * (1 - d / 110)); c.x += dx * k; c.y += dy * k; }
     if (d < 24) {
       c.taken = true; coinCount++; hudCoinT = 1;
       addScore(100, c.x, c.y - 10);
@@ -984,7 +994,7 @@ function update(dt) {
     if (g.taken) continue;
     g.t += dt;
     const dx = p.x + p.w/2 - g.x, dy = p.y + p.h/2 - g.y, d = Math.hypot(dx, dy);
-    if (d < 90 && d > 0.1) { const k = Math.min(1, dt * 9 * (1 - d / 90)); g.x += dx * k; g.y += dy * k; }
+    if (magnetT > 0 && d < 110 && d > 0.1) { const k = Math.min(1, dt * 9 * (1 - d / 110)); g.x += dx * k; g.y += dy * k; }
     if (d < 26) {
       g.taken = true; gemsRun++; hudGemT = 1;
       addScore(500, g.x, g.y - 10, '+500 宝石！');
@@ -1010,6 +1020,16 @@ function update(dt) {
       popups.push({x:b.x, y:b.y-12, txt:'二段跳靴！30 秒内空中可再跳一次', t:2.4});
       sfx.boots();
       burst(b.x, b.y, '#9fd8ff', 12, 140);
+    }
+  }
+  for (const mg of magnetItems) {
+    if (mg.taken) continue;
+    mg.t += dt;
+    if (Math.hypot(p.x+p.w/2-mg.x, p.y+p.h/2-mg.y) < 26) {
+      mg.taken = true; magnetT = 20;
+      popups.push({x:mg.x, y:mg.y-12, txt:'吸铁石！20 秒内金币宝石自动飞来', t:2.4});
+      sfx.magnet();
+      burst(mg.x, mg.y, '#ff9d97', 12, 140);
     }
   }
 
@@ -1292,6 +1312,7 @@ function draw(time) {
   for (const g of gems) if (!g.taken) drawGem(g);
   for (const s of stars) if (!s.taken) drawStar(s);
   for (const b of bootsItems) if (!b.taken) drawBoots(b);
+  for (const mg of magnetItems) if (!mg.taken) drawMagnet(mg);
   for (const g of gates) if (grid[g.ty][g.tx] !== T_EMPTY) drawGateRune(g, time);
   for (const e of enemies) drawEnemy(e, time);
   for (const b of bullets) drawBullet(b);
@@ -1593,6 +1614,23 @@ function drawBoots(b) {
   ctx.fillRect(-12, 3, 10, 4); ctx.fillRect(2, 3, 10, 4);
   ctx.restore();
 }
+function drawMagnet(m) {
+  const bob = Math.sin(m.t * 2.4) * 3;
+  ctx.save(); ctx.translate(m.x, m.y + bob);
+  ctx.fillStyle = 'rgba(255,157,151,0.25)';
+  ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fill();
+  // 马蹄形磁铁：红色拱 + 两条腿 + 白色磁极
+  ctx.lineCap = 'butt';
+  ctx.strokeStyle = '#e2504c'; ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.arc(0, -1, 8, Math.PI, Math.PI * 2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-8, -1); ctx.lineTo(-8, 6);
+  ctx.moveTo(8, -1); ctx.lineTo(8, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#f2f4ff';
+  ctx.fillRect(-12, 5, 8, 5); ctx.fillRect(4, 5, 8, 5);
+  ctx.restore();
+}
 function drawBullet(b) {
   ctx.fillStyle = 'rgba(201,162,255,0.35)';
   ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, 7); ctx.fill();
@@ -1796,7 +1834,7 @@ function drawHUD(L) {
     ctx.strokeText(got + '/' + gems.length, 50, 135); ctx.fillText(got + '/' + gems.length, 50, 135);
     ctx.font = 'bold 18px "Segoe UI", sans-serif';
   }
-  // 状态倒计时（无敌星 / 二段跳靴）
+  // 状态倒计时（无敌星 / 二段跳靴 / 吸铁石）
   let indY = gems.length ? 166 : 133;
   if (player.starT > 0) {
     ctx.fillStyle = 'hsl(' + Math.floor(levelTime * 300 % 360) + ',90%,65%)';
@@ -1809,6 +1847,13 @@ function drawHUD(L) {
     ctx.fillStyle = bootsT <= 5 && Math.floor(levelTime * 4) % 2 === 0 ? '#ff8f8f' : '#9fd8ff';
     ctx.strokeText('👟 ' + bootsT.toFixed(1), 26, indY);
     ctx.fillText('👟 ' + bootsT.toFixed(1), 26, indY);
+    ctx.fillStyle = '#fff';
+    indY += 33;
+  }
+  if (magnetT > 0) {
+    ctx.fillStyle = magnetT <= 5 && Math.floor(levelTime * 4) % 2 === 0 ? '#fff' : '#ff9d97';
+    ctx.strokeText('🧲 ' + magnetT.toFixed(1), 26, indY);
+    ctx.fillText('🧲 ' + magnetT.toFixed(1), 26, indY);
     ctx.fillStyle = '#fff';
   }
   // Boss 血条
