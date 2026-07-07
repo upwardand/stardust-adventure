@@ -969,9 +969,11 @@ function update(dt) {
   for (const c of coins) {
     if (c.taken) continue;
     c.t += dt;
-    // 磁吸（需吸铁石道具）：靠近后金币飞向玩家
+    // 磁吸（需吸铁石道具）：进入半径即锁定，强力追踪直到吸进怀里（奔跑、弹簧飞行也追得上）
     const dx = p.x + p.w/2 - c.x, dy = p.y + p.h/2 - c.y, d = Math.hypot(dx, dy);
-    if (magnetT > 0 && d < 110 && d > 0.1) { const k = Math.min(1, dt * 9 * (1 - d / 110)); c.x += dx * k; c.y += dy * k; }
+    if (magnetT > 0 && d < 110) c.mag = true;
+    else if (c.mag && (magnetT <= 0 || d > 240)) c.mag = false;   // 只有失效或复活传送才松开
+    if (c.mag && d > 0.1) { const k = Math.min(1, dt * 12); c.x += dx * k; c.y += dy * k; }
     if (d < 24) {
       c.taken = true; coinCount++; hudCoinT = 1;
       addScore(100, c.x, c.y - 10);
@@ -994,7 +996,9 @@ function update(dt) {
     if (g.taken) continue;
     g.t += dt;
     const dx = p.x + p.w/2 - g.x, dy = p.y + p.h/2 - g.y, d = Math.hypot(dx, dy);
-    if (magnetT > 0 && d < 110 && d > 0.1) { const k = Math.min(1, dt * 9 * (1 - d / 110)); g.x += dx * k; g.y += dy * k; }
+    if (magnetT > 0 && d < 110) g.mag = true;
+    else if (g.mag && (magnetT <= 0 || d > 240)) g.mag = false;
+    if (g.mag && d > 0.1) { const k = Math.min(1, dt * 12); g.x += dx * k; g.y += dy * k; }
     if (d < 26) {
       g.taken = true; gemsRun++; hudGemT = 1;
       addScore(500, g.x, g.y - 10, '+500 宝石！');
